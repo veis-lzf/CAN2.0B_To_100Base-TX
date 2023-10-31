@@ -1,0 +1,50 @@
+/**
+ ***************************************************************************************************
+ * 实验简介
+ * 实验名称 : lwIP Socket TCPServer 实验
+ * 实验平台 : 正点原子 探索者F407开发板
+ * 实验目的 : 学习lwIP Socket TCPServer 接口
+
+ ***************************************************************************************************
+ * 硬件资源及引脚分配
+ * 1 LED灯
+     DS0（RED）     : LED0 - PE0
+ * 2 串口1 (PA9/PA10连接在板载USB转串口芯片CH340上面)
+ * 3 正点原子 2.8/3.5/4.3/7/10寸TFTLCD模块(仅限MCU屏，16位8080并口驱动)
+ * 4 ETH,YT8521网络芯片
+        ETH_MDIO -------------------------> PA2
+        ETH_MDC --------------------------> PC1
+        ETH_RMII_REF_CLK------------------> PA1
+        ETH_RMII_CRS_DV ------------------> PA7
+        ETH_RMII_RXD0 --------------------> PC4
+        ETH_RMII_RXD1 --------------------> PC5
+        ETH_RMII_TX_EN -------------------> PG11
+        ETH_RMII_TXD0 --------------------> PG13
+        ETH_RMII_TXD1 --------------------> PG14
+        ETH_RESET-------------------------> PD3
+ 
+ ***************************************************************************************************
+ * 实验现象
+ * 1 分配IP信息完成之后，我们把网络调试助手设置协议为TCPClient，同时设置IP等信息，在发送区填入要发送的数据
+ * 2 直连电脑的话DHCP失败会使用静态IP，优先确认是否能ping通再进行数据收发
+
+串口1，115200收到如下数据，DS1也在快闪，说明以太网初始化完成
+[19:43:33.423]收←◆State:Connection Successful
+
+[19:57:39.188]收←◆DHCP Timeout !! 
+StaPort:8088
+tic IP address: 192.168.1.30
+lwIP Init Successed
+Static IP:192.168.1.30
+Ethernet Speed:100M
+ ***************************************************************************************************
+
+封包过程
+void CAN1_RX0_IRQHandler(void)
+{
+    uint32_t id;
+    can_receive_msg(id, can_pack.can_data);
+    can_pack.m_id = (g_canx_rxheader.IDE == 0) ? g_canx_rxheader.StdId : g_canx_rxheader.ExtId;
+    can_pack.m_len = g_canx_rxheader.DLC;
+    g_lwip_send_flag |= LWIP_SEND_DATA;
+}
